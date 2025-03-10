@@ -1,0 +1,77 @@
+name: Build and Push Backend Docker Image
+
+on:
+  workflow_dispatch: # Manual trigger
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  ORG: rahulkatiyar19955
+  IMAGE_NAME: visualizer
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Get the available space
+        run: df -h
+
+      - name: Remove files & free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Get the available space after cleanup
+        run: df -h
+
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Log in to GitHub Container Registry (GHCR)
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Extract metadata (tags, labels) for Docker
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME}}
+          labels: |
+            maintainer=RahulKatiyar
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      # Build and push the Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
