@@ -36,6 +36,9 @@ jobs:
       # Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
 
       # Log in to GitHub Container Registry (GHCR)
       - name: Log in to GHCR
