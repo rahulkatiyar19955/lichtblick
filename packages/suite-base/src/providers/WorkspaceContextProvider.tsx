@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright (C) 2023-2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
+// SPDX-FileCopyrightText: Copyright (C) 2023-2025 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
 // SPDX-License-Identifier: MPL-2.0
 
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -50,6 +50,7 @@ export function makeWorkspaceContextInitialState(): WorkspaceContextStore {
     },
     playbackControls: {
       repeat: false,
+      syncInstances: false,
     },
   };
 }
@@ -77,6 +78,11 @@ function createWorkspaceContextStore(
         // Note that this is an opt-in list of keys from the store that we
         // include and restore when persisting to and from localStorage.
         return _.pick(state, ["featureTours", "playbackControls", "sidebars"]);
+      },
+      merge(persistedState, currentState) {
+        // Use a deep merge to ensure that defaults are filled in for nested values if the values
+        // were not present in localStorage.
+        return _.merge(currentState, persistedState);
       },
     }),
   );

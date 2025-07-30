@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright (C) 2023-2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
+// SPDX-FileCopyrightText: Copyright (C) 2023-2025 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
 // SPDX-License-Identifier: MPL-2.0
 
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -13,6 +13,7 @@ import {
   MenuList,
   MenuListProps,
   Select,
+  Slider,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -24,6 +25,7 @@ import { v4 as uuid } from "uuid";
 import { Immutable, SettingsTreeAction, SettingsTreeField } from "@lichtblick/suite";
 import MessagePathInput from "@lichtblick/suite-base/components/MessagePathSyntax/MessagePathInput";
 import { useStyles } from "@lichtblick/suite-base/components/SettingsTreeEditor/FieldEditor.style";
+import { LegendControls } from "@lichtblick/suite-base/components/SettingsTreeEditor/inputs/LegendControls";
 import Stack from "@lichtblick/suite-base/components/Stack";
 import { useAppContext } from "@lichtblick/suite-base/context/AppContext";
 
@@ -57,11 +59,16 @@ function FieldInput({
           readOnly={field.readonly}
           ListboxComponent={MenuList}
           ListboxProps={{ dense: true } as Partial<MenuListProps>}
-          renderOption={(props, option, { selected }) => (
-            <MenuItem selected={selected} {...props}>
-              {option}
-            </MenuItem>
-          )}
+          renderOption={(props, option, { selected }) => {
+            const { key, ...otherProps } = props as {
+              key?: string;
+            } & React.HTMLAttributes<HTMLLIElement>;
+            return (
+              <MenuItem key={key} selected={selected} {...otherProps}>
+                {option}
+              </MenuItem>
+            );
+          }}
           componentsProps={{
             clearIndicator: {
               size: "small",
@@ -333,6 +340,26 @@ function FieldInput({
           max={field.max}
           onChange={(value) => {
             actionHandler({ action: "update", payload: { path, input: "vec2", value } });
+          }}
+        />
+      );
+    case "legendcontrols":
+      return <LegendControls />;
+    case "slider":
+      return (
+        <Slider
+          className={classes.slider}
+          value={field.value}
+          min={field.min}
+          max={field.max}
+          step={field.step}
+          size="small"
+          valueLabelDisplay="auto"
+          onChange={(_, value) => {
+            actionHandler({
+              action: "update",
+              payload: { path, input: "slider", value: value as number },
+            });
           }}
         />
       );

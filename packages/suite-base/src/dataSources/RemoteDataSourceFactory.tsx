@@ -1,22 +1,19 @@
-// SPDX-FileCopyrightText: Copyright (C) 2023-2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
+// SPDX-FileCopyrightText: Copyright (C) 2023-2025 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
 // SPDX-License-Identifier: MPL-2.0
 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-import { Link } from "@mui/material";
 import path from "path";
 
+import { AllowedFileExtensions } from "@lichtblick/suite-base/constants/allowedFileExtensions";
 import {
   IDataSourceFactory,
   DataSourceFactoryInitializeArgs,
 } from "@lichtblick/suite-base/context/PlayerSelectionContext";
-import { fileTypesAllowed } from "@lichtblick/suite-base/dataSources/constants";
-import {
-  IterablePlayer,
-  WorkerIterableSource,
-} from "@lichtblick/suite-base/players/IterablePlayer";
+import { IterablePlayer } from "@lichtblick/suite-base/players/IterablePlayer";
+import { WorkerSerializedIterableSource } from "@lichtblick/suite-base/players/IterablePlayer/WorkerSerializedIterableSource";
 import { Player } from "@lichtblick/suite-base/players/types";
 
 const initWorkers: Record<string, () => Worker> = {
@@ -40,13 +37,10 @@ const initWorkers: Record<string, () => Worker> = {
   },
 };
 
-export function isFileExtensionAllowed(fileExtension: string): void {
-  if (
-    !fileTypesAllowed.some((allowedExtension) => fileExtension.toLowerCase() === allowedExtension)
-  ) {
-    throw new Error(`Unsupported extension: ${fileExtension}`);
-  }
-}
+const fileTypesAllowed: AllowedFileExtensions[] = [
+  AllowedFileExtensions.BAG,
+  AllowedFileExtensions.MCAP,
+];
 
 export function checkExtensionMatch(fileExtension: string, previousExtension?: string): string {
   if (previousExtension != undefined && previousExtension !== fileExtension) {
@@ -72,11 +66,11 @@ class RemoteDataSourceFactory implements IDataSourceFactory {
   public docsLinks = [
     {
       label: "ROS 1",
-      url: "https://docs.foxglove.dev/docs/connecting-to-data/frameworks/ros1#remote-file",
+      url: "https://lichtblick-suite.github.io/docs/connecting-to-data/ros1.html",
     },
     {
       label: "MCAP",
-      url: "https://docs.foxglove.dev/docs/connecting-to-data/frameworks/mcap#remote-file",
+      url: "https://lichtblick-suite.github.io/docs/connecting-to-data/mcap.html",
     },
   ];
 
@@ -93,15 +87,7 @@ class RemoteDataSourceFactory implements IDataSourceFactory {
     ],
   };
 
-  public warning = (
-    <>
-      Loading large files over HTTP can be slow. For better performance, we recommend{" "}
-      <Link href="https://foxglove.dev/data-platform" target="_blank">
-        Foxglove Data Platform
-      </Link>
-      .
-    </>
-  );
+  public warning = "Loading large files over HTTP can be slow";
 
   public initialize(args: DataSourceFactoryInitializeArgs): Player | undefined {
     if (args.params?.url == undefined) {
@@ -114,13 +100,12 @@ class RemoteDataSourceFactory implements IDataSourceFactory {
 
     urls.forEach((url) => {
       extension = path.extname(new URL(url).pathname);
-      isFileExtensionAllowed(extension);
       nextExtension = checkExtensionMatch(extension, nextExtension);
     });
 
     const initWorker = initWorkers[extension]!;
 
-    const source = new WorkerIterableSource({ initWorker, initArgs: { urls } });
+    const source = new WorkerSerializedIterableSource({ initWorker, initArgs: { urls } });
 
     return new IterablePlayer({
       source,
@@ -128,13 +113,14 @@ class RemoteDataSourceFactory implements IDataSourceFactory {
       metricsCollector: args.metricsCollector,
       urlParams: { urls },
       sourceId: this.id,
+      readAheadDuration: { sec: 10, nsec: 0 },
     });
   }
 
   #validateUrl(newValue: string): Error | undefined {
     try {
       const url = new URL(newValue);
-      const extension = path.extname(url.pathname);
+      const extension = path.extname(url.pathname) as AllowedFileExtensions;
 
       if (extension.length === 0) {
         return new Error("URL must end with a filename and extension");

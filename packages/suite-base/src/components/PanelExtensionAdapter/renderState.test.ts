@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright (C) 2023-2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
+// SPDX-FileCopyrightText: Copyright (C) 2023-2025 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
 // SPDX-License-Identifier: MPL-2.0
 
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -64,6 +64,7 @@ function makeInitialState(): BuilderRenderStateInput {
       { name: "test", schemaName: "schema" },
       { name: "test2", schemaName: "schema2" },
     ],
+    sortedServices: ["service1", "service2"],
     subscriptions: [{ topic: "test" }, { topic: "test", convertTo: "otherSchema", preload: true }],
     messageConverters: [
       {
@@ -152,6 +153,19 @@ describe("renderState", () => {
     });
   });
 
+  it("should provide services", () => {
+    const { buildRenderState, input } = setup();
+    _.merge(input, {
+      sortedServices: ["service1", "/namespace/service2"],
+      watchedFields: new Set(["services"]),
+    });
+    const state = buildRenderState(input);
+
+    expect(state).toEqual({
+      services: ["service1", "/namespace/service2"],
+    });
+  });
+
   it("should provide stable time values", () => {
     const buildRenderState = initRenderStateBuilder();
     const playerState = PlayerBuilder.playerState({
@@ -177,6 +191,7 @@ describe("renderState", () => {
       sharedPanelState: {},
       sortedTopics: [{ name: "test", schemaName: "schema" }],
       subscriptions: [{ topic: "test", convertTo: "schema" }],
+      sortedServices: [],
     };
     const firstRenderState = buildRenderState(initialState);
     expect(firstRenderState).toEqual({

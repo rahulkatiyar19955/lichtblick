@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright (C) 2023-2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
+// SPDX-FileCopyrightText: Copyright (C) 2023-2025 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
 // SPDX-License-Identifier: MPL-2.0
 
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -56,6 +56,7 @@ export type BuilderRenderStateInput = Immutable<{
   playerState: PlayerState | undefined;
   sharedPanelState: Record<string, unknown> | undefined;
   sortedTopics: readonly PlayerTopic[];
+  sortedServices?: readonly string[];
   subscriptions: Subscription[];
   watchedFields: Set<string>;
   config?: RenderStateConfig | undefined;
@@ -114,6 +115,7 @@ function initRenderStateBuilder(): BuildRenderStateFn {
       playerState,
       sharedPanelState,
       sortedTopics,
+      sortedServices,
       subscriptions,
       watchedFields,
       config,
@@ -221,6 +223,10 @@ function initRenderStateBuilder(): BuildRenderStateFn {
         renderState.topics = topics;
         prevSortedTopics = sortedTopics;
       }
+    }
+
+    if (watchedFields.has("services")) {
+      updateRenderStateField("services", sortedServices ?? [], renderState.services, shouldRender);
     }
 
     if (watchedFields.has("currentFrame")) {

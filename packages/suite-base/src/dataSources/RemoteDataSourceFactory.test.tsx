@@ -1,23 +1,21 @@
 /** @jest-environment jsdom */
 
-// SPDX-FileCopyrightText: Copyright (C) 2023-2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
+// SPDX-FileCopyrightText: Copyright (C) 2023-2025 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
 // SPDX-License-Identifier: MPL-2.0
 
 import { DataSourceFactoryInitializeArgs } from "@lichtblick/suite-base/context/PlayerSelectionContext";
-import {
-  IterablePlayer,
-  WorkerIterableSource,
-} from "@lichtblick/suite-base/players/IterablePlayer";
+import { IterablePlayer } from "@lichtblick/suite-base/players/IterablePlayer";
+import { WorkerSerializedIterableSource } from "@lichtblick/suite-base/players/IterablePlayer/WorkerSerializedIterableSource";
 import { PlayerMetricsCollectorInterface } from "@lichtblick/suite-base/players/types";
 
-import RemoteDataSourceFactory, {
-  isFileExtensionAllowed,
-  checkExtensionMatch,
-} from "./RemoteDataSourceFactory";
+import RemoteDataSourceFactory, { checkExtensionMatch } from "./RemoteDataSourceFactory";
 
 jest.mock("@lichtblick/suite-base/players/IterablePlayer", () => ({
-  WorkerIterableSource: jest.fn(),
   IterablePlayer: jest.fn(),
+}));
+
+jest.mock("@lichtblick/suite-base/players/IterablePlayer/WorkerSerializedIterableSource", () => ({
+  WorkerSerializedIterableSource: jest.fn(),
 }));
 
 function setupArgs(params?: Record<string, string | undefined>): DataSourceFactoryInitializeArgs {
@@ -27,24 +25,6 @@ function setupArgs(params?: Record<string, string | undefined>): DataSourceFacto
   };
   return mockArgs;
 }
-
-describe("isFileExtensionAllowed", () => {
-  it("should throw an error if extension passed isn't allowed", () => {
-    const mockExtenstion = ".json";
-
-    expect(() => {
-      isFileExtensionAllowed(mockExtenstion);
-    }).toThrow(`Unsupported extension: ${mockExtenstion}`);
-  });
-
-  it("shouldn't throw an error if extension passed is allowed", () => {
-    const mockExtenstion = ".mcap";
-
-    expect(() => {
-      isFileExtensionAllowed(mockExtenstion);
-    }).not.toThrow();
-  });
-});
 
 describe("checkExtensionMatch", () => {
   it("should return the extension if the comparing extension is undefined", () => {
@@ -80,7 +60,7 @@ describe("RemoteDataSourceFactory", () => {
   let factory: RemoteDataSourceFactory;
 
   const mockSource = { mock: "workerSource" };
-  (WorkerIterableSource as jest.Mock).mockImplementation(() => mockSource);
+  (WorkerSerializedIterableSource as jest.Mock).mockImplementation(() => mockSource);
 
   const mockPlayer = { mock: "playerInstance" };
   (IterablePlayer as jest.Mock).mockImplementation(() => mockPlayer);
@@ -96,7 +76,7 @@ describe("RemoteDataSourceFactory", () => {
 
     const result = factory.initialize(mockArgs);
 
-    expect(WorkerIterableSource).toHaveBeenCalledWith({
+    expect(WorkerSerializedIterableSource).toHaveBeenCalledWith({
       initWorker: expect.any(Function),
       initArgs: { urls: ["https://example.com/test.mcap"] },
     });
@@ -107,6 +87,7 @@ describe("RemoteDataSourceFactory", () => {
       metricsCollector: mockArgs.metricsCollector,
       urlParams: { urls: ["https://example.com/test.mcap"] },
       sourceId: "remote-file",
+      readAheadDuration: { sec: 10, nsec: 0 },
     });
 
     expect(result).toBe(mockPlayer);
@@ -125,6 +106,7 @@ describe("RemoteDataSourceFactory", () => {
       metricsCollector: mockArgs.metricsCollector,
       urlParams: { urls: ["https://example.com/test1.mcap", "https://example.com/test2.mcap"] },
       sourceId: "remote-file",
+      readAheadDuration: { sec: 10, nsec: 0 },
     });
 
     expect(result).toBe(mockPlayer);
@@ -136,14 +118,6 @@ describe("RemoteDataSourceFactory", () => {
     const result = factory.initialize(mockArgs);
 
     expect(result).toBeUndefined();
-  });
-
-  it("should throw an error for unsupported file extensions", () => {
-    const mockArgs = setupArgs({
-      url: "https://example.com/test.txt",
-    });
-
-    expect(() => factory.initialize(mockArgs)).toThrow("Unsupported extension: .txt");
   });
 
   it("should throw an error if the multiple sources don't have the same file extension", () => {
