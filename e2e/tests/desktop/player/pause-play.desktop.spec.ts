@@ -3,6 +3,7 @@
 
 import { Locator, Page } from "playwright";
 
+import { changeToEpochFormat } from "../../../fixtures/change-to-epoch-format";
 import { test, expect } from "../../../fixtures/electron";
 import { loadFile } from "../../../fixtures/load-file";
 
@@ -13,19 +14,6 @@ function getPlaybackElements(mainWindow: Page): { button: Locator; timestamp: Lo
   const timestamp = mainWindow.getByTestId("PlaybackTime-text").locator("input");
 
   return { button, timestamp };
-}
-
-async function changeToEpochFormat(mainWindow: Page) {
-  const initialTimeInUTC = "2025-02-26 10:37:15.547 AM WET";
-
-  // get date values in epoch format
-  const playerStartingTime = mainWindow.locator(`input[value="${initialTimeInUTC}"]`);
-  await playerStartingTime.hover();
-  const timestampDropdown = mainWindow.getByTestId("playback-time-display-toggle-button");
-  await timestampDropdown.click();
-
-  const newTimestampOption = mainWindow.getByTestId("playback-time-display-option-SEC");
-  await newTimestampOption.click();
 }
 
 /**
