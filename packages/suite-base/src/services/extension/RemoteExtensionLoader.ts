@@ -13,7 +13,6 @@ import {
 import { ALLOWED_FILES } from "@lichtblick/suite-base/services/extension/types";
 import decompressFile from "@lichtblick/suite-base/services/extension/utils/decompressFile";
 import extractFoxeFileContent from "@lichtblick/suite-base/services/extension/utils/extractFoxeFileContent";
-import qualifiedName from "@lichtblick/suite-base/services/extension/utils/qualifiedName";
 import validatePackageInfo from "@lichtblick/suite-base/services/extension/utils/validatePackageInfo";
 import { Namespace } from "@lichtblick/suite-base/types";
 import { ExtensionInfo } from "@lichtblick/suite-base/types/Extensions";
@@ -81,7 +80,9 @@ export class RemoteExtensionLoader implements IExtensionLoader {
     const decompressedData = await decompressFile(foxeFileData);
     const rawPackageFile = await extractFoxeFileContent(decompressedData, ALLOWED_FILES.PACKAGE);
     if (!rawPackageFile) {
-      throw new Error(`Extension is corrupted: missing ${ALLOWED_FILES.PACKAGE}`);
+      throw new Error(
+        `Corrupted extension. File "${ALLOWED_FILES.PACKAGE}" is missing in the extension source.`,
+      );
     }
 
     const rawInfo = validatePackageInfo(JSON.parse(rawPackageFile) as Partial<ExtensionInfo>);
@@ -93,7 +94,7 @@ export class RemoteExtensionLoader implements IExtensionLoader {
         ...rawInfo,
         id: `${normalizedPublisher}.${rawInfo.name}`,
         namespace: rawInfo.namespace,
-        qualifiedName: qualifiedName(rawInfo.namespace!, normalizedPublisher, rawInfo),
+        qualifiedName: rawInfo.displayName || rawInfo.name,
         readme: (await extractFoxeFileContent(decompressedData, ALLOWED_FILES.README)) ?? "",
         changelog: (await extractFoxeFileContent(decompressedData, ALLOWED_FILES.CHANGELOG)) ?? "",
       },
