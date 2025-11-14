@@ -6,7 +6,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import dotenv from "dotenv";
-import { ESBuildMinifyPlugin } from "esbuild-loader";
+import { EsbuildPlugin } from "esbuild-loader";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
 import path from "path";
@@ -222,7 +222,7 @@ export function makeConfig(
       removeAvailableModules: true,
 
       minimizer: [
-        new ESBuildMinifyPlugin({
+        new EsbuildPlugin({
           target: "es2022",
           minify: true,
         }),
@@ -241,6 +241,8 @@ export function makeConfig(
         // Should match webpack-defines.d.ts
         ReactNull: null, // eslint-disable-line no-restricted-syntax
         LICHTBLICK_SUITE_VERSION: JSON.stringify(version),
+        API_URL: JSON.stringify(process.env.API_URL),
+        DEV_WORKSPACE: JSON.stringify(process.env.DEV_WORKSPACE),
         ...buildEnvVars(),
       }),
       // https://webpack.js.org/plugins/ignore-plugin/#example-of-ignoring-moment-locales
