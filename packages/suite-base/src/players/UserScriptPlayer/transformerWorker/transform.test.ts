@@ -39,7 +39,7 @@ import {
 import { ScriptData } from "@lichtblick/suite-base/players/UserScriptPlayer/types";
 import { RosDatatypes } from "@lichtblick/suite-base/types/RosDatatypes";
 import { basicDatatypes } from "@lichtblick/suite-base/util/basicDatatypes";
-import { DEFAULT_STUDIO_SCRIPT_PREFIX } from "@lichtblick/suite-base/util/globalConstants";
+import { DEFAULT_STUDIO_SCRIPT_PREFIX } from "@lichtblick/suite-base/util/constants";
 
 // Exported for use in other tests.
 const baseNodeData: ScriptData = {
@@ -1233,7 +1233,7 @@ describe("pipeline", () => {
           export default publisher;`,
         error: 2322,
         errorMessage: expect.stringContaining(
-          `Type 'Uint32Array' is not assignable to type 'number[] | Float32Array | Float64Array'`,
+          `Type 'Uint32Array<ArrayBuffer>' is not assignable to type 'number[] | Float32Array<ArrayBufferLike> | Float64Array<ArrayBufferLike>'`,
         ),
       },
       {
