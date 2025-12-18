@@ -11,9 +11,10 @@ permissions:
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true
+    if: |
+      github.event.pull_request.merged == true &&
+      (startsWith(github.head_ref, 'release/') || startsWith(github.head_ref, 'hotfix/'))
     runs-on: macos-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -36,15 +37,18 @@ jobs:
         run: |
           branch_name="${GITHUB_HEAD_REF}"
           if [[ "$branch_name" == hotfix/* ]]; then
-            echo "type=patch" >> $GITHUB_ENV
-          elif [[ "$branch_name" =~ ^release/major ]]; then
-            echo "type=major" >> $GITHUB_ENV
-          elif [[ "$branch_name" =~ ^release/minor ]]; then
-            echo "type=minor" >> $GITHUB_ENV
-          elif [[ "$branch_name" == release/* ]]; then
-            echo "type=minor" >> $GITHUB_ENV
+            echo "type=patch" >> "$GITHUB_ENV"
+          elif [[ "$branch_name" =~ ^release/major(/.*)?$ ]]; then
+            echo "type=major" >> "$GITHUB_ENV"
+          elif [[ "$branch_name" =~ ^release/minor(/.*)?$ ]]; then
+            echo "type=minor" >> "$GITHUB_ENV"
           else
-            echo "type=patch" >> $GITHUB_ENV
+            echo "ERROR: Invalid branch name: $branch_name
+            Expected one of:
+              - hotfix/<name>
+              - release/major/<anything>
+              - release/minor/<anything>" >&2
+            exit 1
           fi
 
       - name: Bump root version
