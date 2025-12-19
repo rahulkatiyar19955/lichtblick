@@ -6,7 +6,7 @@ import { render } from "@testing-library/react";
 import { useNetworkState } from "react-use";
 
 import { NetworkStatusIndicator } from "@lichtblick/suite-base/components/AppBar/NetworkStatusIndicator";
-import BasicBuilder from "@lichtblick/suite-base/testing/builders/BasicBuilder";
+import { BasicBuilder } from "@lichtblick/test-builders";
 
 const API_URL = "https://api.test.com";
 let mockApiUrl: string | undefined = API_URL;
@@ -59,7 +59,7 @@ describe("NetworkStatusIndicator", () => {
     }) as any;
   };
 
-  it("should not render when no namespace parameter is present", () => {
+  it("should not render when no workspace parameter is present", () => {
     mockURL(API_URL);
     (useNetworkState as jest.Mock).mockReturnValue({ online: true });
 
@@ -69,7 +69,7 @@ describe("NetworkStatusIndicator", () => {
   });
 
   it("should not render when online", () => {
-    const url = `${API_URL}/?namespace=${BasicBuilder.string()}`;
+    const url = `${API_URL}/?workspace=${BasicBuilder.string()}`;
     mockURL(url);
     (useNetworkState as jest.Mock).mockReturnValue({ online: true });
 
@@ -79,7 +79,7 @@ describe("NetworkStatusIndicator", () => {
   });
 
   it("should render when offline", () => {
-    const url = `${API_URL}/?namespace=${BasicBuilder.string()}`;
+    const url = `${API_URL}/?workspace=${BasicBuilder.string()}`;
     mockURL(url);
     (useNetworkState as jest.Mock).mockReturnValue({ online: false });
 

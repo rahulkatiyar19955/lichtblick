@@ -1,13 +1,12 @@
 // SPDX-FileCopyrightText: Copyright (C) 2023-2025 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)<lichtblick@bmwgroup.com>
 // SPDX-License-Identifier: MPL-2.0
 
-import { ExtensionInfoSlug } from "@lichtblick/suite-base/api/extensions/types";
+import { ExtensionInfoWorkspace } from "@lichtblick/suite-base/api/extensions/types";
 import { ExtensionMarketplaceDetail } from "@lichtblick/suite-base/context/ExtensionMarketplaceContext";
 import { StoredExtension } from "@lichtblick/suite-base/services/IExtensionStorage";
-import BasicBuilder from "@lichtblick/suite-base/testing/builders/BasicBuilder";
-import { defaults } from "@lichtblick/suite-base/testing/builders/utilities";
 import { Namespace } from "@lichtblick/suite-base/types";
 import { ExtensionInfo } from "@lichtblick/suite-base/types/Extensions";
+import { BasicBuilder, defaults } from "@lichtblick/test-builders";
 
 export default class ExtensionBuilder {
   public static extensionInfo(props: Partial<ExtensionInfo> = {}): ExtensionInfo {
@@ -50,9 +49,11 @@ export default class ExtensionBuilder {
     });
   }
 
-  public static extensionInfoSlug(props: Partial<ExtensionInfoSlug> = {}): ExtensionInfoSlug {
-    return defaults<ExtensionInfoSlug>(props, {
-      remoteNamespace: BasicBuilder.string(),
+  public static extensionInfoWorkspace(
+    props: Partial<ExtensionInfoWorkspace> = {},
+  ): ExtensionInfoWorkspace {
+    return defaults<ExtensionInfoWorkspace>(props, {
+      workspace: BasicBuilder.string(),
       info: ExtensionBuilder.extensionInfo(),
     });
   }
