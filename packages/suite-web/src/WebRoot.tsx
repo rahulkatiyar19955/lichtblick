@@ -15,6 +15,7 @@ import {
   IDataSourceFactory,
   IdbExtensionLoader,
   McapLocalDataSourceFactory,
+  MinioDataSourceFactory,
   RemoteDataSourceFactory,
   RemoteExtensionLoader,
   Ros1LocalBagDataSourceFactory,
@@ -67,6 +68,7 @@ export function WebRoot(props: {
       new UlogLocalDataSourceFactory(),
       new SampleNuscenesDataSourceFactory(),
       new McapLocalDataSourceFactory(),
+      new MinioDataSourceFactory(),
       new RemoteDataSourceFactory(),
     ];
 
